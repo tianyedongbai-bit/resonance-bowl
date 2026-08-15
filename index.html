@@ -365,27 +365,43 @@
       flex: 1;
       height: 10px;
       -webkit-appearance: none;
+      appearance: none;
       background: linear-gradient(to right, var(--accent) 80%, var(--bg-tertiary) 80%);
       border-radius: 5px;
       outline: none;
       cursor: pointer;
+      pointer-events: auto;
     }
 
     .control-group input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 20px;
-      height: 20px;
+      appearance: none;
+      width: 24px;
+      height: 24px;
       background: white;
       border: 3px solid var(--accent);
       border-radius: 50%;
-      cursor: pointer;
+      cursor: grab;
       box-shadow: 0 0 10px rgba(108, 99, 255, 0.5);
-      transition: all 0.2s ease;
     }
 
     .control-group input[type="range"]::-webkit-slider-thumb:hover {
       transform: scale(1.2);
       box-shadow: 0 0 15px rgba(108, 99, 255, 0.8);
+    }
+
+    .control-group input[type="range"]::-webkit-slider-thumb:active {
+      cursor: grabbing;
+    }
+
+    .control-group input[type="range"]::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      background: white;
+      border: 3px solid var(--accent);
+      border-radius: 50%;
+      cursor: grab;
+      box-shadow: 0 0 10px rgba(108, 99, 255, 0.5);
     }
     
     .control-value {
@@ -569,43 +585,6 @@
       }
     }
 
-    /* 确保滑块在所有设备上可交互 */
-    input[type="range"] {
-      -webkit-appearance: none;
-      appearance: none;
-      pointer-events: auto;
-      touch-action: auto;
-      cursor: pointer;
-    }
-
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 20px;
-      height: 20px;
-      background: white;
-      border: 3px solid var(--accent);
-      border-radius: 50%;
-      cursor: pointer;
-      box-shadow: 0 0 10px rgba(108, 99, 255, 0.5);
-      transition: all 0.2s ease;
-    }
-
-    input[type="range"]::-webkit-slider-thumb:hover {
-      transform: scale(1.2);
-      box-shadow: 0 0 15px rgba(108, 99, 255, 0.8);
-    }
-
-    input[type="range"]::-moz-range-thumb {
-      width: 20px;
-      height: 20px;
-      background: white;
-      border: 3px solid var(--accent);
-      border-radius: 50%;
-      cursor: pointer;
-      box-shadow: 0 0 10px rgba(108, 99, 255, 0.5);
-    }
-    
     /* 文件输入隐藏 */
     #audioFileInput {
       display: none;
