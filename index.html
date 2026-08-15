@@ -689,6 +689,15 @@
       initCanvas();
       initAudio();
       renderFrequencyBars();
+
+      // 移动端：用户首次点击页面时激活音频上下文
+      document.addEventListener('click', function initAudioOnClick() {
+        if (audioContext && (audioContext.state === 'suspended' || audioContext.state === 'interrupted')) {
+          audioContext.resume().then(() => {
+            console.log('Audio context activated by user click');
+          });
+        }
+      }, { once: true });
     }
 
     // ===== Canvas 可视化 =====
@@ -1177,14 +1186,20 @@
       // 先初始化音频上下文（必须在设置音频源之前）
       initAudioContext();
 
-      // 恢复音频上下文（浏览器安全策略）
-      if (audioContext && audioContext.state === 'suspended') {
-        audioContext.resume().then(() => {
-          console.log('Audio context resumed');
+      // 恢复音频上下文（移动端必须）
+      if (audioContext) {
+        if (audioContext.state === 'suspended' || audioContext.state === 'interrupted') {
+          audioContext.resume().then(() => {
+            console.log('Audio context resumed for mobile');
+            loadAndPlay(track);
+          }).catch(err => {
+            console.error('Failed to resume audio context:', err);
+            // 显示提示让用户点击播放
+            document.getElementById('lightStatus').textContent = '点击播放';
+          });
+        } else {
           loadAndPlay(track);
-        }).catch(err => {
-          console.error('Failed to resume audio context:', err);
-        });
+        }
       } else {
         loadAndPlay(track);
       }
