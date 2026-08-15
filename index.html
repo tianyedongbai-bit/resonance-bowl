@@ -509,9 +509,60 @@
         grid-template-columns: 1fr;
         grid-template-rows: auto 1fr auto;
       }
-      
+
       .music-library, .light-panel {
         max-height: 200px;
+      }
+    }
+
+    /* 移动端优化 */
+    @media (max-width: 768px) {
+      .app-header {
+        padding: 12px 16px;
+      }
+
+      .logo-text {
+        font-size: 16px;
+      }
+
+      .btn {
+        padding: 12px 20px;
+        min-height: 44px;
+      }
+
+      .control-btn {
+        width: 64px;
+        height: 64px;
+        font-size: 20px;
+      }
+
+      .control-btn-main {
+        width: 72px;
+        height: 72px;
+        font-size: 28px;
+      }
+
+      .category-tab {
+        padding: 8px 14px;
+        min-height: 36px;
+      }
+
+      .track-item {
+        padding: 14px 16px;
+        min-height: 50px;
+      }
+
+      /* 确保按钮可点击 */
+      button, .btn, .category-tab, .track-item, .mode-btn {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        cursor: pointer;
+      }
+
+      /* 增大点击区域 */
+      .btn-primary {
+        min-width: 80px;
+        min-height: 44px;
       }
     }
     
