@@ -361,47 +361,66 @@
       white-space: nowrap;
     }
     
+    /* 滑块样式 - 必须完整重写 */
     .control-group input[type="range"] {
       flex: 1;
-      height: 10px;
+      height: 8px;
       -webkit-appearance: none;
       appearance: none;
-      background: linear-gradient(to right, var(--accent) 80%, var(--bg-tertiary) 80%);
-      border-radius: 5px;
-      outline: none;
+      background: transparent;
       cursor: pointer;
-      pointer-events: auto;
     }
 
+    /* WebKit轨道 */
+    .control-group input[type="range"]::-webkit-slider-runnable-track {
+      height: 8px;
+      background: linear-gradient(to right, var(--accent) 80%, var(--bg-tertiary) 80%);
+      border-radius: 4px;
+    }
+
+    /* WebKit拇指 */
     .control-group input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 24px;
-      height: 24px;
+      width: 20px !important;
+      height: 20px !important;
+      max-width: 20px !important;
+      max-height: 20px !important;
       background: white;
-      border: 3px solid var(--accent);
+      border: 2px solid var(--accent);
       border-radius: 50%;
       cursor: grab;
-      box-shadow: 0 0 10px rgba(108, 99, 255, 0.5);
-    }
-
-    .control-group input[type="range"]::-webkit-slider-thumb:hover {
-      transform: scale(1.2);
-      box-shadow: 0 0 15px rgba(108, 99, 255, 0.8);
+      margin-top: -6px;
+      box-shadow: 0 0 8px rgba(108, 99, 255, 0.5);
     }
 
     .control-group input[type="range"]::-webkit-slider-thumb:active {
       cursor: grabbing;
+      transform: scale(1.1);
     }
 
+    /* Firefox轨道 */
+    .control-group input[type="range"]::-moz-range-track {
+      height: 8px;
+      background: linear-gradient(to right, var(--accent) 80%, var(--bg-tertiary) 80%);
+      border-radius: 4px;
+    }
+
+    /* Firefox拇指 */
     .control-group input[type="range"]::-moz-range-thumb {
-      width: 24px;
-      height: 24px;
+      width: 20px !important;
+      height: 20px !important;
+      max-width: 20px !important;
+      max-height: 20px !important;
       background: white;
-      border: 3px solid var(--accent);
+      border: 2px solid var(--accent);
       border-radius: 50%;
       cursor: grab;
-      box-shadow: 0 0 10px rgba(108, 99, 255, 0.5);
+      box-shadow: 0 0 8px rgba(108, 99, 255, 0.5);
+    }
+
+    .control-group input[type="range"]::-moz-range-thumb:active {
+      cursor: grabbing;
     }
     
     .control-value {
