@@ -97,7 +97,7 @@
       grid-template-columns: 320px 1fr 320px;
       gap: 1px;
       background: rgba(255,255,255,0.05);
-      overflow: hidden;
+      min-height: 0;
     }
     
     /* 左侧音乐库 */
@@ -105,9 +105,8 @@
       background: var(--bg-secondary);
       display: flex;
       flex-direction: column;
-      overflow-y: auto;
-      overflow-x: hidden;
-      max-height: calc(100vh - 60px);
+      min-height: 0;
+      overflow: hidden;
     }
     
     .library-header {
@@ -178,7 +177,9 @@
     .track-list {
       flex: 1;
       overflow-y: auto;
+      overflow-x: hidden;
       padding: 12px;
+      min-height: 0;
     }
     
     .track-item {
@@ -439,9 +440,9 @@
       display: flex;
       flex-direction: column;
       gap: 24px;
+      min-height: 0;
       overflow-y: auto;
       overflow-x: hidden;
-      max-height: calc(100vh - 60px);
     }
     
     .panel-header {
