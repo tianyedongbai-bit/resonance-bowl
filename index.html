@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#6c63ff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="颂钵播放器">
+  <meta name="description" content="七轮颂钵疗愈音乐播放器，支持脉轮分类、灯光同步和频率分析">
+  <title>Resonance Bowl - 颂钵疗愈音乐播放器</title>
+
+  <!-- PWA 配置 -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg-primary: #0f0f1a;
+      --bg-secondary: #1a1a2e;
+      --bg-tertiary: #252542;
+      --accent: #6c63ff;
+      --accent-light: #8b85ff;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0b0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    
+    /* 顶部导航 */
+    .app-header {
+      height: 60px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .logo-icon { font-size: 28px; }
+    
+    .logo-text {
+      font-size: 20px;
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--accent) 0%, #a55eea 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--accent-light);
+      box-shadow: 0 0 20px rgba(108, 99, 255, 0.4);
+    }
+    
+    /* 主内容区 */
+    .app-main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 320px 1fr 320px;
+      gap: 1px;
+      background: rgba(255,255,255,0.05);
+      overflow: hidden;
+    }
+    
+    /* 左侧音乐库 */
+    .music-library {
+      background: var(--bg-secondary);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .library-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .library-header h3 { font-size: 16px; }
+    
+    .track-count {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: var(--bg-tertiary);
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+    
+    /* 分类标签 */
+    .category-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .category-tab {
+      padding: 6px 12px;
+      border: none;
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      border-radius: 16px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    
+    .category-tab:hover {
+      color: var(--text-primary);
+    }
+    
+    .category-tab.active {
+      background: var(--accent);
+      color: white;
+    }
+    
+    /* 脉轮分类特殊颜色 */
+    .category-tab[data-category="海底轮"] { border-left: 3px solid #ff6b6b; }
+    .category-tab[data-category="生殖轮"] { border-left: 3px solid #ffa502; }
+    .category-tab[data-category="太阳轮"] { border-left: 3px solid #ffd700; }
+    .category-tab[data-category="心轮"] { border-left: 3px solid #26de81; }
+    .category-tab[data-category="喉轮"] { border-left: 3px solid #45aaf2; }
+    .category-tab[data-category="眉心轮"] { border-left: 3px solid #a55eea; }
+    .category-tab[data-category="顶轮"] { border-left: 3px solid #dfe6e9; }
+    
+    .category-tab.active[data-category="海底轮"] { background: #ff6b6b; }
+    .category-tab.active[data-category="生殖轮"] { background: #ffa502; }
+    .category-tab.active[data-category="太阳轮"] { background: #ffd700; }
+    .category-tab.active[data-category="心轮"] { background: #26de81; }
+    .category-tab.active[data-category="喉轮"] { background: #45aaf2; }
+    .category-tab.active[data-category="眉心轮"] { background: #a55eea; }
+    .category-tab.active[data-category="顶轮"] { background: #b8c5d6; }
+    
+    .track-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+    
+    .track-item {
+      padding: 12px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 8px;
+      border-left: 3px solid transparent;
+    }
+    
+    .track-item:hover { background: var(--bg-tertiary); }
+    .track-item.active { background: var(--accent); }
+    
+    /* 脉轮曲目颜色标记 */
+    .track-item[data-chakra="海底轮"] { border-left-color: #ff6b6b; }
+    .track-item[data-chakra="生殖轮"] { border-left-color: #ffa502; }
+    .track-item[data-chakra="太阳轮"] { border-left-color: #ffd700; }
+    .track-item[data-chakra="心轮"] { border-left-color: #26de81; }
+    .track-item[data-chakra="喉轮"] { border-left-color: #45aaf2; }
+    .track-item[data-chakra="眉心轮"] { border-left-color: #a55eea; }
+    .track-item[data-chakra="顶轮"] { border-left-color: #dfe6e9; }
+    
+    .track-name {
+      font-size: 14px;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .track-category {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      padding: 40px;
+    }
+    
+    .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+    
+    /* 中间播放区 */
+    .player-section {
+      background: var(--bg-primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px;
+    }
+    
+    .light-canvas-container {
+      width: 100%;
+      height: 320px;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 32px;
+      position: relative;
+      background: #0a0a14;
+    }
+    
+    #lightCanvas {
+      width: 100%;
+      height: 100%;
+    }
+    
+    .current-track-info {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    
+    .track-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .track-category-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    /* 播放控制 */
+    .player-controls {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .control-btn {
+      width: 56px;
+      height: 56px;
+      border: none;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border-radius: 50%;
+      font-size: 22px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .control-btn:hover {
+      background: var(--accent);
+      transform: scale(1.15);
+      box-shadow: 0 4px 15px rgba(108, 99, 255, 0.6);
+    }
+
+    .control-btn-main {
+      width: 80px;
+      height: 80px;
+      background: var(--accent);
+      font-size: 32px;
+      box-shadow: 0 4px 20px rgba(108, 99, 255, 0.5);
+    }
+
+    .control-btn-main:hover {
+      box-shadow: 0 6px 25px rgba(108, 99, 255, 0.8);
+    }
+    
+    /* 进度条 */
+    .progress-section {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .time-current, .time-total {
+      font-size: 12px;
+      color: var(--text-secondary);
+      min-width: 40px;
+    }
+    
+    .progress-bar {
+      flex: 1;
+      height: 4px;
+      background: var(--bg-tertiary);
+      border-radius: 2px;
+      cursor: pointer;
+      position: relative;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.1s linear;
+    }
+    
+    /* 控制行 */
+    .controls-row {
+      display: flex;
+      gap: 32px;
+      width: 100%;
+      max-width: 600px;
+    }
+    
+    .control-group {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .control-group label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    
+    .control-group input[type="range"] {
+      flex: 1;
+      height: 10px;
+      -webkit-appearance: none;
+      background: linear-gradient(to right, var(--accent) 80%, var(--bg-tertiary) 80%);
+      border-radius: 5px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .control-group input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border: 3px solid var(--accent);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(108, 99, 255, 0.5);
+      transition: all 0.2s ease;
+    }
+
+    .control-group input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      box-shadow: 0 0 15px rgba(108, 99, 255, 0.8);
+    }
+    
+    .control-value {
+      font-size: 12px;
+      color: var(--text-secondary);
+      min-width: 40px;
+    }
+    
+    /* 右侧灯光面板 */
+    .light-panel {
+      background: var(--bg-secondary);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .panel-header h3 { font-size: 16px; }
+    
+    .light-status {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+    }
+    
+    .light-status.active {
+      background: rgba(74, 222, 128, 0.2);
+      color: #4ade80;
+    }
+    
+    .light-preview {
+      display: flex;
+      justify-content: center;
+      padding: 40px 0;
+    }
+    
+    .light-orb {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+    
+    .color-info { text-align: center; }
+    
+    .color-hex {
+      font-size: 20px;
+      font-weight: 600;
+      font-family: 'Courier New', monospace;
+      margin-bottom: 12px;
+    }
+    
+    .color-desc {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-primary);
+      letter-spacing: 1px;
+    }
+    
+    .light-modes h4, .frequency-display h4 {
+      font-size: 14px;
+      margin-bottom: 12px;
+      color: var(--text-secondary);
+    }
+    
+    .mode-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .mode-btn {
+      flex: 1;
+      min-width: calc(50% - 4px);
+      padding: 8px 12px;
+      border: none;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .mode-btn:hover { background: var(--accent); }
+    .mode-btn.active { background: var(--accent); }
+    
+    .frequency-display { margin-top: auto; }
+    
+    .freq-bars {
+      display: flex;
+      gap: 4px;
+      height: 60px;
+      align-items: flex-end;
+      margin-bottom: 12px;
+    }
+    
+    .freq-bar {
+      flex: 1;
+      border-radius: 2px;
+      transition: height 0.05s linear;
+    }
+    
+    .dominant-freq {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    .dominant-freq span {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    
+    /* 响应式 */
+    @media (max-width: 1024px) {
+      .app-main {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+      }
+      
+      .music-library, .light-panel {
+        max-height: 200px;
+      }
+    }
+    
+    /* 文件输入隐藏 */
+    #audioFileInput {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 顶部导航 -->
+    <header class="app-header">
+      <div class="logo">
+        <span class="logo-icon">🪔</span>
+        <span class="logo-text">Resonance Bowl</span>
+      </div>
+      <div class="header-actions">
+        <input type="file" id="audioFileInput" accept="audio/*" multiple>
+      </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="app-main">
+      <!-- 左侧音乐库 -->
+      <aside class="music-library">
+        <div class="library-header">
+          <h3>音乐库</h3>
+          <button class="btn btn-primary" onclick="selectAudioFiles()" style="padding: 6px 12px; font-size: 12px;">
+            📂 导入
+          </button>
+        </div>
+        
+        <!-- 分类标签 -->
+        <div class="category-tabs" id="categoryTabs">
+          <button class="category-tab active" data-category="全部" onclick="filterByCategory('全部')">全部</button>
+          <button class="category-tab" data-category="海底轮" onclick="filterByCategory('海底轮')">🔴 海底轮</button>
+          <button class="category-tab" data-category="生殖轮" onclick="filterByCategory('生殖轮')">🟠 生殖轮</button>
+          <button class="category-tab" data-category="太阳轮" onclick="filterByCategory('太阳轮')">🟡 太阳轮</button>
+          <button class="category-tab" data-category="心轮" onclick="filterByCategory('心轮')">💚 心轮</button>
+          <button class="category-tab" data-category="喉轮" onclick="filterByCategory('喉轮')">🔵 喉轮</button>
+          <button class="category-tab" data-category="眉心轮" onclick="filterByCategory('眉心轮')">🟣 眉心轮</button>
+          <button class="category-tab" data-category="顶轮" onclick="filterByCategory('顶轮')">⚪ 顶轮</button>
+        </div>
+        
+        <div class="track-list" id="trackList">
+          <div class="empty-state">
+            <div class="empty-icon">🎵</div>
+            <p>暂无音乐</p>
+            <p style="font-size: 12px; color: #6c63ff; margin-top: 8px;">点击上方「📂 导入」按钮</p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 中间播放区 -->
+      <section class="player-section">
+        <div class="light-canvas-container">
+          <canvas id="lightCanvas"></canvas>
+        </div>
+
+        <div class="current-track-info" id="currentTrackInfo" style="display: none;">
+          <h2 class="track-title" id="trackTitle">--</h2>
+          <p class="track-category-text" id="trackCategoryText">--</p>
+        </div>
+
+        <div class="player-controls">
+          <button class="control-btn" onclick="playPrevious()" title="上一首">⏮</button>
+          <button class="control-btn control-btn-main" id="playBtn" onclick="togglePlay()" title="播放/暂停">▶</button>
+          <button class="control-btn" onclick="playNext()" title="下一首">⏭</button>
+        </div>
+
+        <div class="progress-section">
+          <span class="time-current" id="timeCurrent">0:00</span>
+          <div class="progress-bar" onclick="seekTo(event)">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+          </div>
+          <span class="time-total" id="timeTotal">0:00</span>
+        </div>
+
+        <div class="controls-row">
+          <div class="control-group">
+            <label>🔊 音量</label>
+            <input type="range" min="0" max="100" value="80" id="volumeSlider" oninput="updateVolume()">
+            <span class="control-value" id="volumeValue">80%</span>
+          </div>
+          <div class="control-group">
+            <label>💡 灯光亮度</label>
+            <input type="range" min="0" max="100" value="70" id="brightnessSlider" oninput="updateBrightness()">
+            <span class="control-value" id="brightnessValue">70%</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 右侧灯光面板 -->
+      <aside class="light-panel">
+        <div class="panel-header">
+          <h3>灯光氛围</h3>
+          <span class="light-status active" id="lightStatus">同步中</span>
+        </div>
+
+        <div class="light-preview">
+          <div class="light-orb" id="lightOrb" style="background: #6c63ff; opacity: 0.7;"></div>
+        </div>
+
+        <div class="color-info">
+          <div class="color-hex" id="colorHex">#6c63ff <span id="colorName">眉心轮</span></div>
+          <div class="color-desc" id="colorDesc">852Hz · 觉醒洞察</div>
+        </div>
+
+        <div class="light-modes">
+          <h4>灯光模式</h4>
+          <div class="mode-buttons">
+            <button class="mode-btn active" onclick="setLightMode('frequency')">🎼 频率映射</button>
+            <button class="mode-btn" onclick="setLightMode('chakra')">🔮 脉轮序列</button>
+            <button class="mode-btn" onclick="setLightMode('breath')">🌬 呼吸同步</button>
+            <button class="mode-btn" onclick="setLightMode('ambient')">✨ 氛围恒定</button>
+          </div>
+        </div>
+
+        <div class="frequency-display">
+          <h4>音频频率</h4>
+          <div class="freq-bars" id="freqBars">
+            <!-- 频率条会动态生成 -->
+          </div>
+          <div class="dominant-freq">
+            主频率: <span id="dominantFreq">440.0</span> Hz
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    // ===== 全局状态 =====
+    let audioContext = null;
+    let analyser = null;
+    let audioElement = null;
+    let source = null;
+    let gainNode = null;  // 增益节点必须全局保存
+    let animationId = null;
+    let isPlaying = false;
+    let currentTrackIndex = -1;
+    let playlist = [];
+    let filteredPlaylist = [];
+    let currentCategory = '全部';
+    let currentLightMode = 'frequency';
+    let brightness = 70;
+
+    // ===== 脉轮识别规则 =====
+    const chakraRules = [
+      { keywords: ['root', 'ground', '海底轮', '基础', 'muladhara'], chakra: '海底轮', color: '#ff6b6b' },
+      { keywords: ['sacral', '生殖', '性', 'svadhisthana'], chakra: '生殖轮', color: '#ffa502' },
+      { keywords: ['solar', 'plexus', '太阳', '自信', 'manipura'], chakra: '太阳轮', color: '#ffd700' },
+      { keywords: ['heart', '心', '爱', 'anahata'], chakra: '心轮', color: '#26de81' },
+      { keywords: ['throat', '喉', '表达', 'vishuddha', 'communication', 'communicate', 'speech', 'voice', 'zen', 'pure zen', '33-pure'], chakra: '喉轮', color: '#45aaf2' },
+      { keywords: ['third', 'eye', '眉心', '智慧', 'ajna', 'wisdom'], chakra: '眉心轮', color: '#a55eea' },
+      { keywords: ['crown', '顶轮', '升华', 'sahasrara', 'bliss'], chakra: '顶轮', color: '#dfe6e9' }
+    ];
+
+    function detectChakra(filename) {
+      const lowerName = filename.toLowerCase();
+      for (const rule of chakraRules) {
+        for (const keyword of rule.keywords) {
+          if (lowerName.includes(keyword.toLowerCase())) {
+            return rule.chakra;
+          }
+        }
+      }
+      return '综合疗愈';
+    }
+
+    // ===== 初始化 =====
+    function init() {
+      initCanvas();
+      initAudio();
+      renderFrequencyBars();
+    }
+
+    // ===== Canvas 可视化 =====
+    const canvas = document.getElementById('lightCanvas');
+    const ctx = canvas.getContext('2d');
+    const particles = [];
+    const maxParticles = 80;
+    let energyField = { radius: 100, targetRadius: 100 };
+    let currentColor = { r: 108, g: 99, b: 255 };
+
+    function initCanvas() {
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      animateCanvas();
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+    }
+
+    function animateCanvas() {
+      ctx.fillStyle = 'rgba(15, 15, 26, 0.15)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+
+      // 能量场
+      drawEnergyField(cx, cy);
+      
+      // 粒子
+      drawParticles();
+
+      // 频谱环
+      if (analyser) {
+        drawSpectrumRing(cx, cy);
+      }
+
+      animationId = requestAnimationFrame(animateCanvas);
+    }
+
+    function drawEnergyField(cx, cy) {
+      // 平滑过渡
+      energyField.radius += (energyField.targetRadius - energyField.radius) * 0.05;
+
+      for (let i = 3; i > 0; i--) {
+        const radius = energyField.radius * (1 + i * 0.3);
+        const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+        
+        gradient.addColorStop(0, `rgba(${Math.round(currentColor.r)}, ${Math.round(currentColor.g)}, ${Math.round(currentColor.b)}, ${0.3 / i})`);
+        gradient.addColorStop(0.5, `rgba(${Math.round(currentColor.r)}, ${Math.round(currentColor.g)}, ${Math.round(currentColor.b)}, ${0.15 / i})`);
+        gradient.addColorStop(1, 'rgba(15, 15, 26, 0)');
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      }
+    }
+
+    function drawParticles() {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.02;
+        
+        if (p.life > 0) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${p.r}, ${p.g}, ${p.b}, ${p.life})`;
+          ctx.fill();
+        } else {
+          particles.splice(i, 1);
+        }
+      }
+    }
+
+    function createParticle(frequency, amplitude) {
+      if (particles.length >= maxParticles) return;
+      
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1 + Math.random() * 3;
+
+      const color = frequencyToRGB(frequency);
+
+      particles.push({
+        x: cx,
+        y: cy,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        radius: 2 + Math.random() * 4,
+        r: color.r,
+        g: color.g,
+        b: color.b,
+        life: amplitude
+      });
+    }
+
+    function drawSpectrumRing(cx, cy) {
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyser.getByteFrequencyData(dataArray);
+
+      const barCount = 32;
+      const radius = energyField.radius + 20;
+
+      for (let i = 0; i < barCount; i++) {
+        const value = dataArray[Math.floor(i * bufferLength / barCount)] / 255;
+        const angle = (i / barCount) * Math.PI * 2 - Math.PI / 2;
+        
+        const innerRadius = radius;
+        const outerRadius = radius + value * 40;
+        
+        const x1 = cx + Math.cos(angle) * innerRadius;
+        const y1 = cy + Math.sin(angle) * innerRadius;
+        const x2 = cx + Math.cos(angle) * outerRadius;
+        const y2 = cy + Math.sin(angle) * outerRadius;
+        
+        const freq = i * 100;
+        const color = frequencyToRGB(freq);
+        
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+      }
+    }
+
+    function frequencyToRGB(frequency) {
+      // 基于精准 Solfeggio 脉轮频率
+      // 396 Hz - 海底轮，417 Hz - 生殖轮，528 Hz - 太阳轮
+      // 639 Hz - 心轮，741 Hz - 喉轮，852 Hz - 眉心轮，963 Hz - 顶轮
+      if (frequency < 407) return { r: 255, g: 107, b: 107 };      // 396 Hz 海底轮 - 暖红
+      if (frequency < 473) return { r: 255, g: 165, b: 2 };        // 417 Hz 生殖轮 - 金橙
+      if (frequency < 584) return { r: 255, g: 215, b: 0 };        // 528 Hz 太阳轮 - 明金
+      if (frequency < 696) return { r: 38, g: 222, b: 129 };       // 639 Hz 心轮 - 翠绿
+      if (frequency < 797) return { r: 69, g: 170, b: 242 };       // 741 Hz 喉轮 - 天蓝
+      if (frequency < 908) return { r: 165, g: 94, b: 234 };       // 852 Hz 眉心轮 - 紫罗兰
+      return { r: 223, g: 230, b: 233 };                            // 963 Hz 顶轮 - 月光白
+    }
+
+    // ===== 音频控制 =====
+    function initAudio() {
+      audioElement = document.createElement('audio');
+      audioElement.crossOrigin = 'anonymous';
+      audioElement.volume = 0.8;
+
+      audioElement.addEventListener('loadedmetadata', () => {
+        document.getElementById('timeTotal').textContent = formatTime(audioElement.duration);
+      });
+
+      audioElement.addEventListener('timeupdate', () => {
+        const current = audioElement.currentTime;
+        const duration = audioElement.duration;
+        document.getElementById('timeCurrent').textContent = formatTime(current);
+        document.getElementById('progressFill').style.width = (current / duration * 100) + '%';
+      });
+
+      audioElement.addEventListener('ended', () => {
+        playNext();
+      });
+
+      // 添加播放状态监听
+      audioElement.addEventListener('playing', () => {
+        console.log('Audio is playing');
+        document.getElementById('lightStatus').textContent = '播放中';
+        document.getElementById('lightStatus').classList.add('active');
+      });
+
+      audioElement.addEventListener('pause', () => {
+        console.log('Audio paused');
+        document.getElementById('lightStatus').textContent = '已暂停';
+        document.getElementById('lightStatus').classList.remove('active');
+      });
+
+      audioElement.addEventListener('error', (e) => {
+        console.error('Audio error:', e);
+        document.getElementById('lightStatus').textContent = '加载失败';
+        document.getElementById('lightStatus').classList.remove('active');
+      });
+
+      // 在创建音频元素后立即初始化音频上下文
+      // 这样可以避免在音频源已设置后再创建MediaElementSource的问题
+      initAudioContext();
+    }
+
+    function initAudioContext() {
+      if (audioContext) return;
+
+      console.log('Initializing audio context...');
+
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+
+      // 创建增益节点并保存为全局变量
+      gainNode = audioContext.createGain();
+      gainNode.gain.value = 0.8;  // 设置初始音量为80%
+
+      // 在音频元素还没有设置src时创建MediaElementSource
+      source = audioContext.createMediaElementSource(audioElement);
+
+      // 正确的音频连接链：source -> analyser -> gainNode -> destination
+      source.connect(analyser);
+      analyser.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      console.log('Audio context initialized, state:', audioContext.state);
+
+      startAudioAnalysis();
+    }
+
+    function startAudioAnalysis() {
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      function analyze() {
+        analyser.getByteFrequencyData(dataArray);
+
+        // 找主频率
+        let maxIndex = 0;
+        let maxValue = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          if (dataArray[i] > maxValue) {
+            maxValue = dataArray[i];
+            maxIndex = i;
+          }
+        }
+
+        const frequency = maxIndex * audioContext.sampleRate / analyser.fftSize;
+        const amplitude = maxValue / 255;
+
+        // 更新显示
+        document.getElementById('dominantFreq').textContent = frequency.toFixed(1);
+        
+        // 更新频率条
+        updateFrequencyBars(dataArray);
+
+        // 更新灯光
+        updateLight(frequency, amplitude);
+
+        // 生成粒子
+        if (amplitude > 0.3) {
+          createParticle(frequency, amplitude);
+        }
+
+        requestAnimationFrame(analyze);
+      }
+
+      analyze();
+    }
+
+    function updateFrequencyBars(dataArray) {
+      const barsContainer = document.getElementById('freqBars');
+      const bars = barsContainer.children;
+      const count = 16;
+
+      for (let i = 0; i < count; i++) {
+        const value = dataArray[Math.floor(i * dataArray.length / count)] / 255;
+        const height = value * 100;
+        const color = frequencyToRGB(i * 100 + 200);
+        
+        if (bars[i]) {
+          bars[i].style.height = height + '%';
+          bars[i].style.background = `rgb(${color.r}, ${color.g}, ${color.b})`;
+        }
+      }
+    }
+
+    function updateLight(frequency, amplitude) {
+      // 如果用户选择了特定脉轮分类（非"全部"），使用该脉轮的颜色，不使用频率分析
+      if (currentCategory !== '全部') {
+        const chakraColors = {
+          '海底轮': { r: 255, g: 107, b: 107 },
+          '生殖轮': { r: 255, g: 165, b: 2 },
+          '太阳轮': { r: 255, g: 215, b: 0 },
+          '心轮': { r: 38, g: 222, b: 129 },
+          '喉轮': { r: 69, g: 170, b: 242 },
+          '眉心轮': { r: 165, g: 94, b: 234 },
+          '顶轮': { r: 223, g: 230, b: 233 }
+        };
+
+        const targetColor = chakraColors[currentCategory];
+        if (targetColor) {
+          // 平滑过渡到目标脉轮颜色
+          currentColor.r += (targetColor.r - currentColor.r) * 0.1;
+          currentColor.g += (targetColor.g - currentColor.g) * 0.1;
+          currentColor.b += (targetColor.b - currentColor.b) * 0.1;
+        }
+      } else {
+        // 只有在"全部"分类时，才使用频率分析来决定颜色
+        const color = frequencyToRGB(frequency);
+
+        // 平滑过渡颜色
+        currentColor.r += (color.r - currentColor.r) * 0.1;
+        currentColor.g += (color.g - currentColor.g) * 0.1;
+        currentColor.b += (color.b - currentColor.b) * 0.1;
+      }
+
+      // 更新能量场大小（只受振幅影响）
+      energyField.targetRadius = 80 + amplitude * 120;
+
+      // 更新灯光预览
+      const hex = rgbToHex(Math.round(currentColor.r), Math.round(currentColor.g), Math.round(currentColor.b));
+      document.getElementById('lightOrb').style.background = hex;
+      document.getElementById('lightOrb').style.boxShadow = `0 0 ${40 + brightness}px ${hex}`;
+
+      // 在"全部"分类时，根据频率显示脉轮名称
+      if (currentCategory === '全部') {
+        const chakraInfo = getChakraByFrequency(frequency);
+        document.getElementById('colorHex').innerHTML = `${hex} <span id="colorName">${chakraInfo.name}</span>`;
+        document.getElementById('colorDesc').textContent = chakraInfo.desc;
+      }
+    }
+
+    function rgbToHex(r, g, b) {
+      return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+    }
+
+    // 根据频率获取脉轮信息
+    function getChakraByFrequency(freq) {
+      // 基于精准 Solfeggio 脉轮频率
+      if (freq < 407) return { name: '海底轮', desc: '396Hz · 激活能量' };
+      if (freq < 473) return { name: '生殖轮', desc: '417Hz · 滋养身心' };
+      if (freq < 584) return { name: '太阳轮', desc: '528Hz · 赋能自信' };
+      if (freq < 696) return { name: '心轮', desc: '639Hz · 疗愈之爱' };
+      if (freq < 797) return { name: '喉轮', desc: '741Hz · 净化表达' };
+      if (freq < 908) return { name: '眉心轮', desc: '852Hz · 觉醒洞察' };
+      return { name: '顶轮', desc: '963Hz · 灵性升华' };
+    }
+
+    function getFrequencyDescription(freq) {
+      const chakraInfo = getChakraByFrequency(freq);
+      return `${chakraInfo.name} ${chakraInfo.desc}`;
+    }
+
+    // ===== 播放控制 =====
+    function selectAudioFiles() {
+      const input = document.getElementById('audioFileInput');
+      input.click();
+      
+      input.onchange = (e) => {
+        const files = Array.from(e.target.files);
+        
+        playlist = files.map(file => ({
+          name: file.name,
+          path: URL.createObjectURL(file),
+          category: detectChakra(file.name),
+          chakra: detectChakra(file.name)
+        }));
+
+        filteredPlaylist = [...playlist];
+        renderPlaylist();
+        document.getElementById('trackCount').textContent = playlist.length + ' 首';
+        
+        if (playlist.length > 0) {
+          playTrack(0);
+        }
+      };
+    }
+
+    // ===== 分类过滤 =====
+    function filterByCategory(category) {
+      currentCategory = category;
+
+      // 更新标签激活状态
+      document.querySelectorAll('.category-tab').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.dataset.category === category) {
+          tab.classList.add('active');
+        }
+      });
+
+      // 过滤播放列表
+      if (category === '全部') {
+        filteredPlaylist = [...playlist];
+      } else {
+        filteredPlaylist = playlist.filter(track => track.chakra === category);
+      }
+
+      // 同步更新右侧脉轮信息显示
+      updateChakraDisplay(category);
+
+      renderPlaylist();
+    }
+
+    // 更新右侧脉轮信息显示
+    function updateChakraDisplay(category) {
+      // 脉轮颜色映射
+      const chakraColors = {
+        '海底轮': { color: '#ff6b6b', desc: '396Hz · 激活能量' },
+        '生殖轮': { color: '#ffa502', desc: '417Hz · 滋养身心' },
+        '太阳轮': { color: '#ffd700', desc: '528Hz · 赋能自信' },
+        '心轮': { color: '#26de81', desc: '639Hz · 疗愈之爱' },
+        '喉轮': { color: '#45aaf2', desc: '741Hz · 净化表达' },
+        '眉心轮': { color: '#a55eea', desc: '852Hz · 觉醒洞察' },
+        '顶轮': { color: '#dfe6e9', desc: '963Hz · 灵性升华' }
+      };
+
+      // 如果是"全部"分类，不强制更新，让频率分析自动决定
+      if (category === '全部') {
+        return;
+      }
+
+      const chakraInfo = chakraColors[category];
+      if (chakraInfo) {
+        // 更新灯光预览
+        document.getElementById('lightOrb').style.background = chakraInfo.color;
+        document.getElementById('lightOrb').style.boxShadow = `0 0 ${40 + brightness}px ${chakraInfo.color}`;
+
+        // 更新颜色信息（颜色代码 + 脉轮名称）
+        document.getElementById('colorHex').innerHTML = `${chakraInfo.color} <span id="colorName">${category}</span>`;
+        document.getElementById('colorDesc').textContent = chakraInfo.desc;
+
+        // 更新全局颜色（用于可视化）
+        const rgb = hexToRgb(chakraInfo.color);
+        if (rgb) {
+          currentColor.r = rgb.r;
+          currentColor.g = rgb.g;
+          currentColor.b = rgb.b;
+        }
+      }
+    }
+
+    // 十六进制转RGB
+    function hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null;
+    }
+
+    function renderPlaylist() {
+      const container = document.getElementById('trackList');
+      
+      if (filteredPlaylist.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🎵</div>
+            <p>${currentCategory === '全部' ? '暂无音乐' : '该分类暂无音乐'}</p>
+            ${currentCategory === '全部' ? `<button class="btn btn-primary" onclick="selectAudioFiles()" style="margin-top: 16px;">导入颂钵音乐</button>` : ''}
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filteredPlaylist.map((track, index) => `
+        <div class="track-item ${index === currentTrackIndex ? 'active' : ''}" 
+             data-chakra="${track.chakra}"
+             onclick="playTrack(${playlist.indexOf(track)})">
+          <div class="track-info">
+            <div class="track-name">${track.name}</div>
+            <div class="track-category">${track.chakra}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderFrequencyBars() {
+      const container = document.getElementById('freqBars');
+      container.innerHTML = Array(16).fill(0).map(() => 
+        '<div class="freq-bar" style="height: 10%; background: #6c63ff;"></div>'
+      ).join('');
+    }
+
+    function playTrack(index) {
+      if (index < 0 || index >= playlist.length) return;
+
+      currentTrackIndex = index;
+      const track = playlist[index];
+
+      console.log('Preparing to play:', track.name);
+
+      // 先初始化音频上下文（必须在设置音频源之前）
+      initAudioContext();
+
+      // 恢复音频上下文（浏览器安全策略）
+      if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+          console.log('Audio context resumed');
+          loadAndPlay(track);
+        }).catch(err => {
+          console.error('Failed to resume audio context:', err);
+        });
+      } else {
+        loadAndPlay(track);
+      }
+
+      // 更新UI
+      document.getElementById('currentTrackInfo').style.display = 'block';
+      document.getElementById('trackTitle').textContent = track.name.replace(/\.[^/.]+$/, '');
+      document.getElementById('trackCategoryText').textContent = track.chakra;
+
+      renderPlaylist();
+    }
+
+    function loadAndPlay(track) {
+      console.log('=== Loading and playing track ===');
+      console.log('Track name:', track.name);
+      console.log('Track path:', track.path);
+
+      // 设置音频源
+      audioElement.src = track.path;
+      console.log('Audio source set');
+
+      // 等待音频数据加载后再播放
+      audioElement.addEventListener('canplaythrough', function onCanPlay() {
+        audioElement.removeEventListener('canplaythrough', onCanPlay);
+
+        console.log('Audio data loaded, duration:', audioElement.duration);
+        console.log('Audio volume:', audioElement.volume);
+        console.log('Audio context state:', audioContext ? audioContext.state : 'not initialized');
+
+        const playPromise = audioElement.play();
+
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            isPlaying = true;
+            document.getElementById('playBtn').textContent = '⏸';
+            console.log('=== Playback started successfully ===');
+            console.log('Track:', track.name);
+
+            // 检查音频是否真的在播放
+            setTimeout(() => {
+              console.log('Current time:', audioElement.currentTime);
+              console.log('Paused:', audioElement.paused);
+            }, 1000);
+
+          }).catch(error => {
+            console.warn('=== Playback blocked ===');
+            console.warn('Error:', error);
+            isPlaying = false;
+            document.getElementById('playBtn').textContent = '▶';
+            document.getElementById('lightStatus').textContent = '请点击播放';
+          });
+        }
+      });
+
+      audioElement.addEventListener('error', function onError(e) {
+        console.error('=== Audio error ===');
+        console.error('Error:', e);
+        audioElement.removeEventListener('error', onError);
+      });
+    }
+
+    function performPlay(track) {
+      loadAndPlay(track);
+    }
+
+    function togglePlay() {
+      if (!audioElement.src) {
+        if (playlist.length > 0) {
+          playTrack(0);
+        }
+        return;
+      }
+
+      if (isPlaying) {
+        audioElement.pause();
+        document.getElementById('playBtn').textContent = '▶';
+        isPlaying = false;
+      } else {
+        // 恢复音频上下文（浏览器安全策略）
+        if (audioContext && audioContext.state === 'suspended') {
+          audioContext.resume().then(() => {
+            console.log('✓ 音频上下文已恢复');
+          });
+        }
+        audioElement.play().then(() => {
+          document.getElementById('playBtn').textContent = '⏸';
+          isPlaying = true;
+          console.log('✓ 继续播放');
+        }).catch(err => {
+          console.error('❌ 播放失败:', err);
+        });
+      }
+    }
+
+    function playPrevious() {
+      if (currentTrackIndex > 0) {
+        playTrack(currentTrackIndex - 1);
+      }
+    }
+
+    function playNext() {
+      if (currentTrackIndex < playlist.length - 1) {
+        playTrack(currentTrackIndex + 1);
+      }
+    }
+
+    function seekTo(event) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const percent = (event.clientX - rect.left) / rect.width;
+      audioElement.currentTime = percent * audioElement.duration;
+    }
+
+    function updateVolume() {
+      const value = document.getElementById('volumeSlider').value;
+      const volume = value / 100;
+
+      // 同时控制音频元素和增益节点
+      audioElement.volume = volume;
+
+      // 如果增益节点已创建，也更新增益值
+      if (gainNode) {
+        gainNode.gain.value = volume;
+      }
+
+      document.getElementById('volumeValue').textContent = value + '%';
+      console.log('Volume updated:', value + '%');
+    }
+
+    function updateBrightness() {
+      brightness = parseInt(document.getElementById('brightnessSlider').value);
+      document.getElementById('brightnessValue').textContent = brightness + '%';
+    }
+
+    function setLightMode(mode) {
+      currentLightMode = mode;
+      document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function formatTime(seconds) {
+      if (!seconds || isNaN(seconds)) return '0:00';
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // 启动
+    window.onload = init;
+
+    // 注册 Service Worker (PWA)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(registration => {
+            console.log('Service Worker 注册成功:', registration.scope);
+          })
+          .catch(error => {
+            console.log('Service Worker 注册失败:', error);
+          });
+      });
+    }
+
+    // PWA 安装提示
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // 可以在这里显示自定义安装按钮
+      console.log('PWA 可以安装');
+    });
+  </script>
+</body>
+</html>
