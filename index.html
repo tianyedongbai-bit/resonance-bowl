@@ -540,6 +540,7 @@
       <aside class="music-library">
         <div class="library-header">
           <h3>音乐库</h3>
+          <span class="track-count" id="trackCount">0 首</span>
           <button class="btn btn-primary" onclick="selectAudioFiles()" style="padding: 6px 12px; font-size: 12px;">
             📂 导入
           </button>
@@ -841,7 +842,8 @@
     // ===== 音频控制 =====
     function initAudio() {
       audioElement = document.createElement('audio');
-      audioElement.crossOrigin = 'anonymous';
+      // 对于本地blob URL，不需要设置crossOrigin
+      // audioElement.crossOrigin = 'anonymous';
       audioElement.volume = 0.8;
 
       audioElement.addEventListener('loadedmetadata', () => {
@@ -916,10 +918,10 @@
       function analyze() {
         analyser.getByteFrequencyData(dataArray);
 
-        // 找主频率
-        let maxIndex = 0;
+        // 找主频率（从bin 1开始，跳过DC分量）
+        let maxIndex = 1;
         let maxValue = 0;
-        for (let i = 0; i < bufferLength; i++) {
+        for (let i = 1; i < bufferLength; i++) {
           if (dataArray[i] > maxValue) {
             maxValue = dataArray[i];
             maxIndex = i;
