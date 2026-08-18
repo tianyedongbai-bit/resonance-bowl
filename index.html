@@ -105,7 +105,7 @@
       background: var(--bg-secondary);
       display: flex;
       flex-direction: column;
-      height: 100%;
+      min-height: 300px;
       overflow: hidden;
     }
     
@@ -176,7 +176,6 @@
     
     .track-list {
       flex: 1;
-      height: 100%;
       overflow-y: auto;
       overflow-x: hidden;
       padding: 12px;
@@ -440,7 +439,7 @@
       display: flex;
       flex-direction: column;
       gap: 24px;
-      height: 100%;
+      min-height: 300px;
       overflow-y: auto;
       overflow-x: hidden;
     }
@@ -557,10 +556,8 @@
       }
 
       .music-library, .light-panel {
-        height: auto;
         min-height: 200px;
         max-height: 300px;
-        overflow-y: auto;
       }
     }
 
