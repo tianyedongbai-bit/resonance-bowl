@@ -97,7 +97,6 @@
       grid-template-columns: 320px 1fr 320px;
       gap: 1px;
       background: rgba(255,255,255,0.05);
-      height: calc(100vh - 60px);
     }
     
     /* 左侧音乐库 */
@@ -553,11 +552,14 @@
       .app-main {
         grid-template-columns: 1fr;
         grid-template-rows: auto 1fr auto;
+        height: auto;
+        min-height: 100vh;
       }
 
       .music-library, .light-panel {
-        min-height: 200px;
-        max-height: 300px;
+        min-height: 250px !important;
+        max-height: 350px;
+        height: auto !important;
       }
     }
 
