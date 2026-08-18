@@ -637,31 +637,32 @@
       <!-- 左侧音乐库 -->
       <aside class="music-library">
         <div class="library-header">
-          <h3>音乐</h3>
-          <span class="track-count" id="trackCount">0</span>
+          <h3>音乐库</h3>
+          <span class="track-count" id="trackCount">0 首</span>
         </div>
         <div style="padding: 8px 12px;">
           <button class="btn btn-primary" onclick="selectAudioFiles()" style="width: 100%; font-size: 16px;">
-            📂 导入
+            📂 导入颂钵音乐
           </button>
         </div>
 
         <!-- 分类标签 -->
         <div class="category-tabs" id="categoryTabs">
           <button class="category-tab active" data-category="全部" onclick="filterByCategory('全部')">全部</button>
-          <button class="category-tab" data-category="海底轮" onclick="filterByCategory('海底轮')">🔴</button>
-          <button class="category-tab" data-category="生殖轮" onclick="filterByCategory('生殖轮')">🟠</button>
-          <button class="category-tab" data-category="太阳轮" onclick="filterByCategory('太阳轮')">🟡</button>
-          <button class="category-tab" data-category="心轮" onclick="filterByCategory('心轮')">💚</button>
-          <button class="category-tab" data-category="喉轮" onclick="filterByCategory('喉轮')">🔵</button>
-          <button class="category-tab" data-category="眉心轮" onclick="filterByCategory('眉心轮')">🟣</button>
-          <button class="category-tab" data-category="顶轮" onclick="filterByCategory('顶轮')">⚪</button>
+          <button class="category-tab" data-category="海底轮" onclick="filterByCategory('海底轮')">🔴 海底轮</button>
+          <button class="category-tab" data-category="生殖轮" onclick="filterByCategory('生殖轮')">🟠 生殖轮</button>
+          <button class="category-tab" data-category="太阳轮" onclick="filterByCategory('太阳轮')">🟡 太阳轮</button>
+          <button class="category-tab" data-category="心轮" onclick="filterByCategory('心轮')">💚 心轮</button>
+          <button class="category-tab" data-category="喉轮" onclick="filterByCategory('喉轮')">🔵 喉轮</button>
+          <button class="category-tab" data-category="眉心轮" onclick="filterByCategory('眉心轮')">🟣 眉心轮</button>
+          <button class="category-tab" data-category="顶轮" onclick="filterByCategory('顶轮')">⚪ 顶轮</button>
         </div>
 
         <div class="track-list" id="trackList">
           <div class="empty-state">
             <div class="empty-icon">🎵</div>
             <p>暂无音乐</p>
+            <p style="font-size: 12px; color: #6c63ff; margin-top: 8px;">点击上方「📂 导入」按钮</p>
           </div>
         </div>
       </aside>
@@ -693,12 +694,12 @@
 
         <div class="controls-row">
           <div class="control-group">
-            <label>🔊</label>
+            <label>🔊 音量</label>
             <input type="range" min="0" max="100" value="80" id="volumeSlider" oninput="updateVolume()">
             <span class="control-value" id="volumeValue">80%</span>
           </div>
           <div class="control-group">
-            <label>💡</label>
+            <label>💡 灯光亮度</label>
             <input type="range" min="0" max="100" value="70" id="brightnessSlider" oninput="updateBrightness()">
             <span class="control-value" id="brightnessValue">70%</span>
           </div>
@@ -708,8 +709,8 @@
       <!-- 右侧灯光面板 -->
       <aside class="light-panel">
         <div class="panel-header">
-          <h3>灯光</h3>
-          <span class="light-status active" id="lightStatus">同步</span>
+          <h3>灯光氛围</h3>
+          <span class="light-status active" id="lightStatus">同步中</span>
         </div>
 
         <div class="light-preview">
@@ -718,26 +719,26 @@
 
         <div class="color-info">
           <div class="color-hex" id="colorHex">#6c63ff <span id="colorName">眉心轮</span></div>
-          <div class="color-desc" id="colorDesc">852Hz</div>
+          <div class="color-desc" id="colorDesc">852Hz · 觉醒洞察</div>
         </div>
 
         <div class="light-modes">
-          <h4>模式</h4>
+          <h4>灯光模式</h4>
           <div class="mode-buttons">
-            <button class="mode-btn active" onclick="setLightMode('frequency')">🎼 频率</button>
-            <button class="mode-btn" onclick="setLightMode('chakra')">🔮 脉轮</button>
-            <button class="mode-btn" onclick="setLightMode('breath')">🌬 呼吸</button>
-            <button class="mode-btn" onclick="setLightMode('ambient')">✨ 恒定</button>
+            <button class="mode-btn active" onclick="setLightMode('frequency')">🎼 频率映射</button>
+            <button class="mode-btn" onclick="setLightMode('chakra')">🔮 脉轮序列</button>
+            <button class="mode-btn" onclick="setLightMode('breath')">🌬 呼吸同步</button>
+            <button class="mode-btn" onclick="setLightMode('ambient')">✨ 氛围恒定</button>
           </div>
         </div>
 
         <div class="frequency-display">
-          <h4>频率</h4>
+          <h4>音频频率</h4>
           <div class="freq-bars" id="freqBars">
             <!-- 频率条会动态生成 -->
           </div>
           <div class="dominant-freq">
-            <span id="dominantFreq">440.0</span> Hz
+            主频率: <span id="dominantFreq">440.0</span> Hz
           </div>
         </div>
       </aside>
@@ -780,7 +781,7 @@
           }
         }
       }
-      return '其他';
+      return '综合疗愈';
     }
 
     // ===== 初始化 =====
@@ -1160,7 +1161,7 @@
 
         filteredPlaylist = [...playlist];
         renderPlaylist();
-        document.getElementById('trackCount').textContent = playlist.length;
+        document.getElementById('trackCount').textContent = playlist.length + ' 首';
         
         if (playlist.length > 0) {
           playTrack(0);
