@@ -187,6 +187,9 @@
       transition: all 0.3s ease;
       margin-bottom: 8px;
       border-left: 3px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
     
     .track-item:hover { background: var(--bg-tertiary); }
@@ -212,6 +215,22 @@
     .track-category {
       font-size: 12px;
       color: var(--text-secondary);
+    }
+
+    .track-delete {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .track-delete:hover {
+      color: #ff6b6b;
+      background: rgba(255,107,107,0.1);
     }
     
     .empty-state {
@@ -756,6 +775,75 @@
     let currentLightMode = 'frequency';
     let brightness = 70;
 
+    // ===== IndexedDB 永久存储 =====
+    const DB_NAME = 'resonance-bowl-db';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'tracks';
+
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+          }
+        };
+        request.onsuccess = (e) => resolve(e.target.result);
+        request.onerror = (e) => reject(e.target.error);
+      });
+    }
+
+    async function saveTrackToDB(file) {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const trackData = {
+          name: file.name,
+          file: file,
+          chakra: detectChakra(file.name),
+          size: file.size,
+          addedAt: Date.now()
+        };
+        const request = store.add(trackData);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function getAllTracksFromDB() {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function deleteTrackFromDB(id) {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.delete(id);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function requestPersistentStorage() {
+      if (navigator.storage && navigator.storage.persist) {
+        const isPersisted = await navigator.storage.persisted();
+        if (!isPersisted) {
+          await navigator.storage.persist();
+          console.log('已请求永久存储');
+        }
+      }
+    }
+
     // ===== 脉轮识别规则 =====
     const chakraRules = [
       { keywords: ['root', 'ground', '海底轮', '基础', 'muladhara'], chakra: '海底轮', color: '#ff6b6b' },
@@ -784,6 +872,9 @@
       initCanvas();
       initAudio();
       renderFrequencyBars();
+
+      // 从 IndexedDB 加载已保存的曲目
+      loadTracksFromDB();
 
       // 移动端：用户首次点击页面时激活音频上下文
       document.addEventListener('click', function initAudioOnClick() {
@@ -1140,28 +1231,52 @@
     }
 
     // ===== 播放控制 =====
-    function selectAudioFiles() {
+    async function selectAudioFiles() {
       const input = document.getElementById('audioFileInput');
       input.click();
-      
-      input.onchange = (e) => {
-        const files = Array.from(e.target.files);
-        
-        playlist = files.map(file => ({
-          name: file.name,
-          path: URL.createObjectURL(file),
-          category: detectChakra(file.name),
-          chakra: detectChakra(file.name)
-        }));
 
-        filteredPlaylist = [...playlist];
-        renderPlaylist();
-        document.getElementById('trackCount').textContent = playlist.length + ' 首';
-        
-        if (playlist.length > 0) {
-          playTrack(0);
+      input.onchange = async (e) => {
+        const files = Array.from(e.target.files);
+
+        // 保存到 IndexedDB
+        for (const file of files) {
+          await saveTrackToDB(file);
         }
+
+        // 请求永久存储
+        await requestPersistentStorage();
+
+        // 从数据库重新加载所有曲目
+        await loadTracksFromDB();
       };
+    }
+
+    // 从数据库加载所有曲目
+    async function loadTracksFromDB() {
+      const dbTracks = await getAllTracksFromDB();
+
+      playlist = dbTracks.map(track => ({
+        id: track.id,
+        name: track.name,
+        path: URL.createObjectURL(track.file),
+        category: track.chakra,
+        chakra: track.chakra
+      }));
+
+      filteredPlaylist = [...playlist];
+      renderPlaylist();
+      document.getElementById('trackCount').textContent = playlist.length + ' 首';
+
+      if (playlist.length > 0 && currentTrackIndex === -1) {
+        playTrack(0);
+      }
+    }
+
+    // 删除曲目
+    async function removeTrack(id, event) {
+      if (event) event.stopPropagation();
+      await deleteTrackFromDB(id);
+      await loadTracksFromDB();
     }
 
     // ===== 分类过滤 =====
@@ -1252,13 +1367,14 @@
       }
 
       container.innerHTML = filteredPlaylist.map((track, index) => `
-        <div class="track-item ${index === currentTrackIndex ? 'active' : ''}" 
+        <div class="track-item ${index === currentTrackIndex ? 'active' : ''}"
              data-chakra="${track.chakra}"
              onclick="playTrack(${playlist.indexOf(track)})">
           <div class="track-info">
             <div class="track-name">${track.name}</div>
             <div class="track-category">${track.chakra}</div>
           </div>
+          <button class="track-delete" onclick="removeTrack(${track.id}, event)" title="删除">×</button>
         </div>
       `).join('');
     }
